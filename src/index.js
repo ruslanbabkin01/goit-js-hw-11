@@ -3,36 +3,50 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { fetchImages } from './fetchimages';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import NewsApiService from './fetchimages';
 
 const refs = {
   searchForm: document.querySelector('#search-form'),
   imagesContainer: document.querySelector('.gallery'),
+  loadMoreBtn: document.querySelector('.load-more'),
 };
 
 refs.searchForm.addEventListener('submit', onSearch);
+refs.loadMoreBtn.addEventListener('click', fetchArticles);
+const newsApiService = new NewsApiService();
+refs.loadMoreBtn.classList.add('is-hidden');
 
 function onSearch(e) {
   e.preventDefault();
-  const inputValue = e.currentTarget.elements.searchQuery.value;
-  console.log(inputValue);
 
-  if (inputValue === ' ') {
+  newsApiService.query = e.currentTarget.elements.searchQuery.value;
+
+  if (newsApiService.query === '') {
     return alert('Введи что-то нормальное');
   }
-
-  fetchFullImages();
-  // clearContainer();
+  refs.loadMoreBtn.classList.remove('is-hidden');
+  newsApiService.resetPage();
+  clearArticlesContainer();
+  fetchArticles();
 }
 
-function fetchFullImages() {
-  // loadMoreBtn.disable();
-  fetchImages()
-    .then(hits => {
-      console.log(hits);
-      appendMarkup(hits);
+function fetchArticles() {
+  // refs.loadMoreBtn.classList.remove('is-hidden');
+  newsApiService
+    .fetchArticles()
+    .then(data => {
+      console.log(data.hits);
+      // if (data.hits === []) {
+      //   onFetchError();
+      // }
+      articlesTpl(data.hits);
+      // refs.loadMoreBtn.classList.remove('is-hidden');
     })
     .catch(onFetchError);
-  // loadMoreBtn.enable();
+}
+
+function clearArticlesContainer() {
+  refs.imagesContainer.innerHTML = '';
 }
 
 function onFetchError() {
@@ -41,42 +55,39 @@ function onFetchError() {
   );
 }
 
-// function addMarkup(data) {
-//   appendTotalMarkup(data);
-
-//   if (data === []) {
-//     Notify.info(
-//       'Sorry, there are no images matching your search query. Please try again.'
-//     );
-//     return;
-//   }
-
-function appendMarkup(hits) {
-  const markup = hits
-    .map(({ webformatURL, tags, likes, views, comments, downloads }) => {
-      return `<div class="photo-card">
+function articlesTpl(data) {
+  const markup = data
+    .map(
+      ({
+        largeImageURL,
+        webformatURL,
+        tags,
+        likes,
+        views,
+        comments,
+        downloads,
+      }) => {
+        return `<div class="photo-card">
+          <a class="photo__link" href="${largeImageURL}">
           <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+          <a/>
           <div class="info">
-            <p class="info-item">${likes}
-              <b>Likes</b>
+            <p class="info-item">
+              <b>Likes</b> ${likes}
             </p>
-            <p class="info-item">${views}
-              <b>Views</b>
+            <p class="info-item">
+              <b>Views</b> ${views}
             </p>
-            <p class="info-item">${comments}
-              <b>Comments</b>
+            <p class="info-item">
+              <b>Comments</b> ${comments}
             </p>
-            <p class="info-item">${downloads}
-              <b>Downloads</b>
+            <p class="info-item">
+              <b>Downloads</b> ${downloads}
             </p>
           </div>
         </div>`;
-    })
+      }
+    )
     .join('');
-  refs.imagesContainer.innerHTML = markup;
+  refs.imagesContainer.insertAdjacentHTML('beforeend', markup);
 }
-
-// function clearContainer() {
-//   refs.listUl.innerHTML = ' ';
-//   refs.divInfo.innerHTML = ' ';
-// }
