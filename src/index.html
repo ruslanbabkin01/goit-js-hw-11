@@ -1,16 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Homework 10</title>
-  </head>
-  <body>
-    <input type="text" id="search-box" />
-    <ul class="country-list"></ul>
-    <div class="country-info"></div>
+<html lang="ru">
 
-    <script src="index.js" type="module"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>Завдання 11 - пошук зображень</title>
+  <link rel="stylesheet" href="css/common.css" />
+</head>
+
+<body>
+  <form class="search-form" id="search-form">
+    <input type="text" name="searchQuery" autocomplete="off" placeholder="Search images..." />
+    <button type="submit">Search</button>
+  </form>
+
+  <div class="gallery"></div>
+
+  <button type="button" class="load-more">Load more</button>
+
+  <!-- <form class="form-inline search-form js-search-form">
+  <div class="form-group mx-sm-3 mb-2">
+    <label for="searchQuery" class="sr-only">Что ищем?</label>
+    <input type="text" class="form-control" name="query" id="searchQuery" placeholder="Что ищем?" autocomplete="off" />
+  </div>
+  <button type="submit" class="btn btn-primary mb-2">Искать</button>
+</form>
+
+<ul class="articles js-articles-container"></ul>
+
+<button type="button" class="btn btn-primary button" data-action="load-more">
+  <span class="spinner-border spinner-border-sm spinner is-hidden" role="status" aria-hidden="true"></span>
+
+  <span class="label">Показать ещё</span>
+</button> -->
+
+  <script type="module" src="index.js"></script>
+</body>
+
 </html>
