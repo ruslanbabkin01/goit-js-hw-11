@@ -9,13 +9,24 @@ export default class NewsApiService {
     this.page = 1;
   }
 
-  fetchArticles() {
-    const url = `${BASE_URL}?key=${API_KEY}&q=${this.searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&page=${this.page}&per_page=40`;
+  fetchImages() {
+    const url = `${BASE_URL}?key=${API_KEY}`;
 
-    return axios.get(url).then(({ data }) => {
-      this.incrementPage();
-      return data;
-    });
+    return axios
+      .get(url, {
+        params: {
+          q: `${this.searchQuery}`,
+          image_type: 'photo',
+          orientation: 'horizontal',
+          safesearch: true,
+          page: `${this.page}`,
+          per_page: 40,
+        },
+      })
+      .then(({ data }) => {
+        this.incrementPage();
+        return data;
+      });
   }
 
   incrementPage() {
