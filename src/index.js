@@ -1,60 +1,62 @@
-import './css/common.css';
+import { ImgApiService } from './js/fetchimages';
+import { refs } from './js/refs';
+import { smoothScroll } from './js/smooth-scroll';
+
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import NewsApiService from './fetchimages';
 
-const refs = {
-  searchForm: document.querySelector('#search-form'),
-  imagesContainer: document.querySelector('.gallery'),
-  loadMoreBtn: document.querySelector('.load-more'),
-};
-
-refs.searchForm.addEventListener('submit', onSearch);
+refs.searchForm.addEventListener('submit', onFormSubmit);
 refs.loadMoreBtn.addEventListener('click', fetchImages);
 
-refs.loadMoreBtn.classList.add('is-hidden');
-const newsApiService = new NewsApiService();
+const imgApi = new ImgApiService();
 
-function onSearch(e) {
+async function onFormSubmit(e) {
   e.preventDefault();
-  newsApiService.query = e.currentTarget.elements.searchQuery.value;
+  clearImagesContainer();
+  imgApi.resetPage();
+  refs.loadMoreBtn.classList.add('is-hidden');
 
-  if (newsApiService.query === '') {
-    return Notify.failure('Sorry, enter a valid query. Please try again.');
+  imgApi.query = e.currentTarget.elements.searchQuery.value;
+
+  if (imgApi.query === '') {
+    Notify.failure('Sorry, enter a valid query. Please try again.');
+    return;
   }
 
-  newsApiService.resetPage();
-  clearImagesContainer();
-  fetchImages();
-  // refs.loadMoreBtn.classList.remove('is-hidden');
+  refs.loadMoreBtn.classList.remove('is-hidden');
+  await fetchImages();
 }
 
-function fetchImages() {
-  newsApiService
-    .fetchImages()
-    .then(data => {
-      if (data.hits.length === 0) {
-        return Notify.failure(
-          'Sorry, there are no images matching your search query. Please try again.'
-        );
-      }
+async function fetchImages() {
+  try {
+    const { totalHits, hits } = await imgApi.fetchImages();
+    const totalPages = totalHits / imgApi.per_page;
 
-      if (data.totalHits > 0) {
-        Notify.success(`Hooray! We found ${data.totalHits} images.`);
-        refs.loadMoreBtn.classList.remove('is-hidden');
-      }
+    if (hits.length === 0) {
+      Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+      refs.loadMoreBtn.classList.add('is-hidden');
+      return;
+    }
 
-      if (data.totalHits % this.page < 40) {
-        Notify.info(
-          "We're sorry, but you've reached the end of search results."
-        );
-        refs.loadMoreBtn.classList.add('is-hidden');
-      }
+    if (imgApi.page === 2) {
+      Notify.success(`Hooray! We found ${totalHits} images.`);
+    }
 
-      imagesTpl(data.hits);
-    })
-    .catch(onFetchError);
+    if (imgApi.page > totalPages + 1) {
+      Notify.info("We're sorry, but you've reached the end of search results.");
+      refs.loadMoreBtn.classList.add('is-hidden');
+    }
+
+    imagesTpl(hits);
+    smoothScroll();
+  } catch (error) {
+    onFetchError();
+    refs.loadMoreBtn.classList.add('is-hidden');
+    clearImagesContainer();
+  }
 }
 
 function clearImagesContainer() {
@@ -100,4 +102,11 @@ function imagesTpl(data) {
     )
     .join('');
   refs.imagesContainer.insertAdjacentHTML('beforeend', markup);
+
+  const lightbox = new SimpleLightbox('.gallery a', {
+    captionsData: 'alt',
+    captionDelay: 250,
+  });
+  lightbox.on('show.simplelightbox');
+  lightbox.refresh();
 }

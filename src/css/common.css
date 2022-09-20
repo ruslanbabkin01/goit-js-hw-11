@@ -17,10 +17,21 @@ img {
   height: auto;
 }
 
+button {
+  cursor: pointer;
+  border: transparent;
+  width: 100px;
+  height: 20px;
+  background-color: #8484ff;
+  color: #212121;
+  font-size: 14px;
+  border-radius: 5px;
+}
+
 .search-form {
   display: flex;
   justify-content: center;
-  padding: 8px;
+  padding: 20px;
   margin-bottom: 24px;
 }
 
