@@ -11,6 +11,11 @@ refs.loadMoreBtn.addEventListener('click', fetchImages);
 
 const imgApi = new ImgApiService();
 
+const lightbox = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captionDelay: 250,
+});
+
 async function onFormSubmit(e) {
   e.preventDefault();
   clearImagesContainer();
@@ -53,9 +58,7 @@ async function fetchImages() {
     imagesTpl(hits);
     smoothScroll();
   } catch (error) {
-    onFetchError();
-    refs.loadMoreBtn.classList.add('is-hidden');
-    clearImagesContainer();
+    onFetchError(error);
   }
 }
 
@@ -65,6 +68,8 @@ function clearImagesContainer() {
 
 function onFetchError(error) {
   Notify.failure(error.message);
+  refs.loadMoreBtn.classList.add('is-hidden');
+  clearImagesContainer();
 }
 
 function imagesTpl(data) {
@@ -103,10 +108,5 @@ function imagesTpl(data) {
     .join('');
   refs.imagesContainer.insertAdjacentHTML('beforeend', markup);
 
-  const lightbox = new SimpleLightbox('.gallery a', {
-    captionsData: 'alt',
-    captionDelay: 250,
-  });
-  lightbox.on('show.simplelightbox');
   lightbox.refresh();
 }
