@@ -1,6 +1,7 @@
 import { ImgApiService } from './js/fetchimages';
 import { refs } from './js/refs';
 import { smoothScroll } from './js/smooth-scroll';
+import { spinerPlay, spinerStop } from './js/spiner';
 
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
@@ -34,6 +35,7 @@ async function onFormSubmit(e) {
 }
 
 async function fetchImages() {
+  spinerPlay();
   try {
     const { totalHits, hits } = await imgApi.fetchImages();
     const totalPages = totalHits / imgApi.per_page;
@@ -60,6 +62,7 @@ async function fetchImages() {
   } catch (error) {
     onFetchError(error);
   }
+  spinerStop();
 }
 
 function clearImagesContainer() {
