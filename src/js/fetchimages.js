@@ -1,9 +1,10 @@
 import axios from 'axios';
 
-const API_KEY = '29966506-3ac2aa6cf44b4238878b6f625';
 const BASE_URL = 'https://pixabay.com/api/';
+const API_KEY = '29966506-3ac2aa6cf44b4238878b6f625';
 
 export class ImgApiService {
+  #totalPages = 0;
   constructor() {
     this.searchQuery = '';
     this.page = 1;
@@ -11,7 +12,7 @@ export class ImgApiService {
   }
 
   async fetchImages() {
-    const url = `${BASE_URL}?key=${API_KEY}`;
+    const urlAXIOS = `${BASE_URL}?key=${API_KEY}`;
 
     const params = {
       q: `${this.searchQuery}`,
@@ -22,9 +23,9 @@ export class ImgApiService {
       per_page: `${this.per_page}`,
     };
 
-    const response = await axios.get(url, { params });
+    const { data } = await axios.get(urlAXIOS, { params });
     this.incrementPage();
-    return response.data;
+    return data;
   }
 
   incrementPage() {
@@ -42,4 +43,8 @@ export class ImgApiService {
   set query(newQuery) {
     this.searchQuery = newQuery;
   }
+
+  // calculateTotalPages(total) {
+  //   this.#totalPages = Math.ceil(total / this.per_page);
+  // }
 }
