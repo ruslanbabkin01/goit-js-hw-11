@@ -1,50 +1,59 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://pixabay.com/api/';
+axios.defaults.baseURL = 'https://pixabay.com/api';
+// axios.defaults.headers.common['Authorization'] =
+//   '29966506-3ac2aa6cf44b4238878b6f625';
 const API_KEY = '29966506-3ac2aa6cf44b4238878b6f625';
 
 export class ImgApiService {
   #totalPages = 0;
-  constructor() {
-    this.searchQuery = '';
-    this.page = 1;
-    this.per_page = 40;
-  }
-
-  async fetchImages() {
-    const urlAXIOS = `${BASE_URL}?key=${API_KEY}`;
-
-    const params = {
-      q: `${this.searchQuery}`,
+  #page = 1;
+  #searchQuery = '';
+  #per_page = 40;
+  #params = {
+    params: {
       image_type: 'photo',
       orientation: 'horizontal',
       safesearch: true,
-      page: `${this.page}`,
-      per_page: `${this.per_page}`,
-    };
+      per_page: 40,
+    },
+  };
 
-    const { data } = await axios.get(urlAXIOS, { params });
+  async fetchImages() {
+    const urlAXIOS = `/?key=${API_KEY}&page=${this.#page}&q=${
+      this.#searchQuery
+    }&per_page=${this.#page}`;
+
+    const { data } = await axios.get(urlAXIOS, this.#params);
     this.incrementPage();
     return data;
   }
 
   incrementPage() {
-    this.page += 1;
+    this.#page += 1;
   }
 
   resetPage() {
-    this.page = 1;
+    this.#page = 1;
+  }
+
+  get page() {
+    return this.#page;
   }
 
   get query() {
-    return this.searchQuery;
+    return this.#searchQuery;
   }
 
   set query(newQuery) {
-    this.searchQuery = newQuery;
+    this.#searchQuery = newQuery;
   }
 
-  // calculateTotalPages(total) {
-  //   this.#totalPages = Math.ceil(total / this.per_page);
-  // }
+  calculateTotalPages(total) {
+    this.#totalPages = Math.ceil(total / this.#per_page);
+  }
+
+  get isShowLoadMore() {
+    return this.#page > this.#totalPages;
+  }
 }

@@ -11,19 +11,19 @@ const imgApi = new ImgApiService();
 
 const callback = async function (entries, observer) {
   entries.forEach(async entry => {
-    // if (entry.isIntersecting && entry.intersectionRect.bottom > 550) {
-    if (entry.isIntersecting) {
+    if (entry.isIntersecting && entry.intersectionRect.bottom > 550) {
+      // if (entry.isIntersecting) {
       imgApi.incrementPage();
       observer.unobserve(entry.target);
 
       try {
-        const { results } = await imgApi.getPhotos();
+        const { results } = await imgApi.fetchImages();
 
         const markup = createMarkup(results);
 
         refs.imagesContainer.insertAdjacentHTML('beforeend', markup);
         if (unsplash.isShowLoadMore) {
-          const target = document.querySelector('.gallery__item:last-child');
+          const target = document.querySelector('.photo-card:last-child');
           io.observe(target);
         }
       } catch (error) {
@@ -33,4 +33,5 @@ const callback = async function (entries, observer) {
     }
   });
 };
+
 const io = new IntersectionObserver(callback, options);

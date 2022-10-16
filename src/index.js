@@ -3,36 +3,39 @@ import { refs } from './js/refs';
 import { smoothScroll } from './js/smooth-scroll';
 import { spinerPlay, spinerStop } from './js/spiner';
 import { imagesTpl } from './js/createMarkup';
-
+import { lightbox } from './js/simpleLightbox';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 refs.searchForm.addEventListener('submit', onFormSubmit);
-refs.loadMoreBtn.addEventListener('click', fetchImages);
+refs.loadMoreBtn.addEventListener('click', onLoadMore);
 
 const imgApi = new ImgApiService();
 
-async function onFormSubmit(e) {
-  e.preventDefault();
+async function onFormSubmit(event) {
+  event.preventDefault();
+
   clearImagesContainer();
-  imgApi.resetPage();
-  refs.loadMoreBtn.classList.add('is-hidden');
+  // refs.loadMoreBtn.classList.add('is-hidden');
 
-  imgApi.query = e.currentTarget.elements.searchQuery.value;
+  const {
+    elements: { searchQuery },
+  } = event.currentTarget;
+  imgApi.query = searchQuery.value.trim().toLowerCase();
 
-  if (imgApi.query === '') {
+  if (!imgApi.query) {
     Notify.failure('Sorry, enter a valid query. Please try again.');
     return;
   }
 
   refs.loadMoreBtn.classList.remove('is-hidden');
-  await fetchImages();
+  await onLoadMore();
 }
 
-async function fetchImages() {
-  spinerPlay();
+async function onLoadMore() {
   try {
+    spinerPlay();
     const { totalHits, hits } = await imgApi.fetchImages();
-    const totalPages = totalHits / imgApi.per_page;
+    imgApi.calculateTotalPages(totalHits);
 
     if (hits.length === 0) {
       Notify.failure(
@@ -46,12 +49,15 @@ async function fetchImages() {
       Notify.success(`Hooray! We found ${totalHits} images.`);
     }
 
-    if (imgApi.page > totalPages + 1) {
+    if (imgApi.isShowLoadMore) {
       Notify.info("We're sorry, but you've reached the end of search results.");
       refs.loadMoreBtn.classList.add('is-hidden');
     }
 
-    imagesTpl(hits);
+    const markup = imagesTpl(hits);
+    refs.imagesContainer.insertAdjacentHTML('beforeend', markup);
+    lightbox.refresh();
+
     smoothScroll();
   } catch (error) {
     onFetchError(error);
@@ -61,11 +67,12 @@ async function fetchImages() {
 }
 
 function clearImagesContainer() {
+  imgApi.resetPage();
   refs.imagesContainer.innerHTML = '';
+  refs.loadMoreBtn.classList.add('is-hidden');
 }
 
 function onFetchError(error) {
   Notify.failure(error.message);
-  refs.loadMoreBtn.classList.add('is-hidden');
   clearImagesContainer();
 }
