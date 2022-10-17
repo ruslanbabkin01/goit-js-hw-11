@@ -1,6 +1,6 @@
-import { ImgApiService } from './js/fetchimages';
+import { PixabayAPI } from './js/PixabayAPI';
 import { refs } from './js/refs';
-import { smoothScroll } from './js/smooth-scroll';
+import { smoothScroll } from './js/smoothScroll';
 import { spinerPlay, spinerStop } from './js/spiner';
 import { imagesTpl } from './js/createMarkup';
 import { lightbox } from './js/simpleLightbox';
@@ -9,13 +9,12 @@ import { Notify } from 'notiflix/build/notiflix-notify-aio';
 refs.searchForm.addEventListener('submit', onFormSubmit);
 refs.loadMoreBtn.addEventListener('click', onLoadMore);
 
-const imgApi = new ImgApiService();
+const imgApi = new PixabayAPI();
+infiniteScroll();
 
 async function onFormSubmit(event) {
   event.preventDefault();
-
   clearImagesContainer();
-  // refs.loadMoreBtn.classList.add('is-hidden');
 
   const {
     elements: { searchQuery },
@@ -36,6 +35,10 @@ async function onLoadMore() {
     spinerPlay();
     const { totalHits, hits } = await imgApi.fetchImages();
     imgApi.calculateTotalPages(totalHits);
+    const markup = imagesTpl(hits);
+    refs.imagesContainer.insertAdjacentHTML('beforeend', markup);
+    lightbox.refresh();
+    smoothScroll();
 
     if (hits.length === 0) {
       Notify.failure(
@@ -53,17 +56,45 @@ async function onLoadMore() {
       Notify.info("We're sorry, but you've reached the end of search results.");
       refs.loadMoreBtn.classList.add('is-hidden');
     }
-
-    const markup = imagesTpl(hits);
-    refs.imagesContainer.insertAdjacentHTML('beforeend', markup);
-    lightbox.refresh();
-
-    smoothScroll();
   } catch (error) {
     onFetchError(error);
   } finally {
     spinerStop();
   }
+}
+
+function infiniteScroll() {
+  const options = {
+    root: null,
+    rootMargin: '100px',
+    threshold: 1.0,
+  };
+
+  const callback = async function (entries, observer) {
+    entries.forEach(async entry => {
+      // if (entry.isIntersecting && entry.intersectionRect.bottom > 550) {
+      if (entry.isIntersecting) {
+        observer.unobserve(entry.target);
+
+        try {
+          const { totalHits, hits } = await imgApi.fetchImages();
+          const markup = imagesTpl(hits);
+          refs.imagesContainer.insertAdjacentHTML('beforeend', markup);
+          lightbox.refresh();
+          smoothScroll();
+          Notify.success(`Hooray! We found ${totalHits} images.`);
+          if (!imgApi.isShowLoadMore) {
+            const target = document.querySelector('.photo-card:last-child');
+            io.observe(target);
+          }
+        } catch (error) {
+          Notify.failure(error.message, 'Щось пішло не так!');
+          onFetchError(error);
+        }
+      }
+    });
+  };
+  const io = new IntersectionObserver(callback, options);
 }
 
 function clearImagesContainer() {

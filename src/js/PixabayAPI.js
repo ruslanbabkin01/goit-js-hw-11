@@ -2,10 +2,10 @@ import axios from 'axios';
 
 axios.defaults.baseURL = 'https://pixabay.com/api';
 // axios.defaults.headers.common['Authorization'] =
-//   '29966506-3ac2aa6cf44b4238878b6f625';
+//   'KEY 29966506-3ac2aa6cf44b4238878b6f625';
 const API_KEY = '29966506-3ac2aa6cf44b4238878b6f625';
 
-export class ImgApiService {
+export class PixabayAPI {
   #totalPages = 0;
   #page = 1;
   #searchQuery = '';
